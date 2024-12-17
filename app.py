@@ -7,7 +7,6 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import streamlit as st
 
-# -------------------------- App Setup --------------------------------
 # Title and description
 st.set_page_config(
     page_title="AgriSmart Crop Advisor 🌾",
@@ -20,11 +19,11 @@ st.write(
     "Welcome to **AgriSmart Crop Advisor**! This app helps farmers and agricultural consultants predict the best crop to grow based on soil, weather, and location data. 🚜💡"
 )
 
-# -------------------------- Load Data and Train Model ------------------------------
+# Load Data and Train Model 
 @st.cache_data
 def load_and_preprocess_data():
     # Step 2: Load the dataset
-    file_path = "Crop(Distric level).csv"  # Update this path if needed
+    file_path = "Crop(Distric level).csv"  
     data = pd.read_csv(file_path)
 
     # Handle missing values
@@ -53,7 +52,7 @@ def load_and_preprocess_data():
 # Load and preprocess data
 model, label_encoder, feature_columns, data = load_and_preprocess_data()
 
-# -------------------------- User Input Interface ------------------------------
+# User Input Interface
 st.subheader("🌟 Enter Input Values for Crop Prediction 🌟")
 
 # Input fields for user
@@ -107,8 +106,8 @@ if st.button("🚀 Predict Crop"):
     st.success(f"🌾 **Predicted Crop Type:** {predicted_crop[0]} 🌱")
     st.balloons()
 
-# -------------------------- Footer ------------------------------
-st.write("**Developed by AI with 💚 for Smart Agriculture 🚜.**")
+# Footer 
+st.write("**Developed by Us3 with 💚 for Smart Agriculture 🚜.**")
 st.markdown("Stay sustainable, stay productive! 🌍")
 
 
