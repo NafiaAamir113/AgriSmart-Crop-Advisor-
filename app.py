@@ -4,10 +4,9 @@
 # from sklearn.ensemble import RandomForestClassifier
 # from sklearn.metrics import accuracy_score, classification_report
 # from sklearn.preprocessing import LabelEncoder
-# import numpy as np
 # import streamlit as st
 
-# # Title and description
+# # Configure Streamlit app
 # st.set_page_config(
 #     page_title="AgriSmart Crop Advisor 🌾",
 #     page_icon="🌱",
@@ -18,9 +17,12 @@
 # st.write(
 #     "Welcome to **AgriSmart Crop Advisor**! This app helps farmers and agricultural consultants predict the best crop to grow based on soil, weather, and location data. 🚜💡"
 # )
+
+# # Upload CSV
 # st.subheader("Upload Your Crop Data CSV File")
 # uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
+# # Function to load and preprocess data
 # @st.cache_data
 # def load_and_preprocess_data(file):
 #     if file is not None:
@@ -29,66 +31,39 @@
 #         # Handle missing values
 #         data = data.dropna()
         
-#         # Encode label column
+#         # Encode the label column
 #         label_encoder = LabelEncoder()
-#         data["label"] = label_encoder.fit_transform(data["label"])
-        
-#         # One-hot encode the 'district' column
-#         data = pd.get_dummies(data, columns=["district"], drop_first=True)
+#         if "label" in data.columns:
+#             data["label"] = label_encoder.fit_transform(data["label"])
+#         else:
+#             st.error("The dataset must include a 'label' column.")
+#             st.stop()
+
+#         # One-hot encode 'district' column if it exists
+#         if "district" in data.columns:
+#             data = pd.get_dummies(data, columns=["district"], drop_first=True)
         
 #         # Features and Target
 #         X = data.drop("label", axis=1)
 #         y = data["label"]
-        
+
 #         # Split data
 #         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-#         # Train the model
+
+#         # Train model
 #         model = RandomForestClassifier(n_estimators=100, random_state=42)
 #         model.fit(X_train, y_train)
-        
-#         return model, label_encoder, X.columns, data
+
+#         return model, label_encoder, X.columns
 #     else:
 #         st.warning("Please upload a CSV file first.")
-#         return None, None, None, None
+#         return None, None, None
 
+# # Load model and data
 # if uploaded_file is not None:
-#     model, label_encoder, feature_columns, data = load_and_preprocess_data(uploaded_file)
+#     model, label_encoder, feature_columns = load_and_preprocess_data(uploaded_file)
 # else:
-#     st.stop()  # Prevent further execution until a file is uploaded
-
-# # Load Data and Train Model 
-# @st.cache_data
-# def load_and_preprocess_data():
-#     # Step 2: Load the dataset
-#     file_path = "Crop(Distric level).csv"  
-#     data = pd.read_csv(file_path)
-
-#     # Handle missing values
-#     data = data.dropna()
-
-#     # Encode label column
-#     label_encoder = LabelEncoder()
-#     data["label"] = label_encoder.fit_transform(data["label"])
-
-#     # One-hot encode the 'district' column
-#     data = pd.get_dummies(data, columns=["district"], drop_first=True)
-
-#     # Features and Target
-#     X = data.drop("label", axis=1)
-#     y = data["label"]
-
-#     # Split data
-#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-#     # Train the model
-#     model = RandomForestClassifier(n_estimators=100, random_state=42)
-#     model.fit(X_train, y_train)
-
-#     return model, label_encoder, X.columns, data
-
-# # Load and preprocess data
-# model, label_encoder, feature_columns, data = load_and_preprocess_data()
+#     st.stop()
 
 # # User Input Interface
 # st.subheader("🌟 Enter Input Values for Crop Prediction 🌟")
@@ -108,7 +83,7 @@
 #     rainfall = st.number_input("🌧️ Rainfall (mm):", min_value=0.0, max_value=500.0, value=100.0, step=1.0)
 #     district_input = st.text_input("📍 District Name (e.g., ryk):", "ryk")
 
-# # Submit button
+# # Prediction logic
 # if st.button("🚀 Predict Crop"):
 #     # Prepare input data
 #     new_data_raw = pd.DataFrame(
@@ -136,16 +111,17 @@
 #     # Reorder columns to match training data
 #     new_data_raw = new_data_raw[feature_columns]
 
-#     # Predict crop type
-#     new_data_encoded = model.predict(new_data_raw)
-#     predicted_crop = label_encoder.inverse_transform(new_data_encoded)
+#     # Make prediction
+#     try:
+#         prediction = model.predict(new_data_raw)
+#         predicted_crop = label_encoder.inverse_transform(prediction)
+#         st.success(f"🌾 **Predicted Crop Type:** {predicted_crop[0]} 🌱")
+#         st.balloons()
+#     except Exception as e:
+#         st.error(f"Error making prediction: {e}")
 
-#     # Display result
-#     st.success(f"🌾 **Predicted Crop Type:** {predicted_crop[0]} 🌱")
-#     st.balloons()
-
-# # Footer 
-# st.write("**Developed by Us3 with 💚 for Smart Agriculture 🚜.**")
+# # Footer
+# st.write("**Developed by Us with 💚 for Smart Agriculture 🚜.**")
 # st.markdown("Stay sustainable, stay productive! 🌍")
 
 
@@ -153,68 +129,56 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 import streamlit as st
 
-# Configure Streamlit app
+# Streamlit page configuration
 st.set_page_config(
     page_title="AgriSmart Crop Advisor 🌾",
     page_icon="🌱",
     layout="centered",
 )
 
+# Title and description
 st.title("🌾 AgriSmart Crop Advisor 🌱")
-st.write(
-    "Welcome to **AgriSmart Crop Advisor**! This app helps farmers and agricultural consultants predict the best crop to grow based on soil, weather, and location data. 🚜💡"
-)
+st.write("""
+Welcome to **AgriSmart Crop Advisor**! This app helps farmers and agricultural consultants predict the best crop to grow 
+based on soil, weather, and location data. 🚜💡
+""")
 
-# Upload CSV
-st.subheader("Upload Your Crop Data CSV File")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-
-# Function to load and preprocess data
+# Load and preprocess the dataset
 @st.cache_data
-def load_and_preprocess_data(file):
-    if file is not None:
-        data = pd.read_csv(file)
-        
-        # Handle missing values
-        data = data.dropna()
-        
-        # Encode the label column
-        label_encoder = LabelEncoder()
-        if "label" in data.columns:
-            data["label"] = label_encoder.fit_transform(data["label"])
-        else:
-            st.error("The dataset must include a 'label' column.")
-            st.stop()
+def load_and_preprocess_data():
+    # Load dataset directly from the script folder
+    file_path = "Crop(Distric level).csv"  # Add your CSV file to the same directory
+    data = pd.read_csv(file_path)
+    
+    # Handle missing values
+    data = data.dropna()
+    
+    # Encode the target 'label' column
+    label_encoder = LabelEncoder()
+    data['label'] = label_encoder.fit_transform(data['label'])
+    
+    # One-hot encode the 'district' column
+    data = pd.get_dummies(data, columns=['district'], drop_first=True)
+    
+    # Split features and target
+    X = data.drop('label', axis=1)
+    y = data['label']
+    
+    # Split data into training and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    # Train the model
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    
+    return model, label_encoder, X.columns
 
-        # One-hot encode 'district' column if it exists
-        if "district" in data.columns:
-            data = pd.get_dummies(data, columns=["district"], drop_first=True)
-        
-        # Features and Target
-        X = data.drop("label", axis=1)
-        y = data["label"]
-
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-        # Train model
-        model = RandomForestClassifier(n_estimators=100, random_state=42)
-        model.fit(X_train, y_train)
-
-        return model, label_encoder, X.columns
-    else:
-        st.warning("Please upload a CSV file first.")
-        return None, None, None
-
-# Load model and data
-if uploaded_file is not None:
-    model, label_encoder, feature_columns = load_and_preprocess_data(uploaded_file)
-else:
-    st.stop()
+# Load model and label encoder
+model, label_encoder, feature_columns = load_and_preprocess_data()
 
 # User Input Interface
 st.subheader("🌟 Enter Input Values for Crop Prediction 🌟")
@@ -234,43 +198,39 @@ with col2:
     rainfall = st.number_input("🌧️ Rainfall (mm):", min_value=0.0, max_value=500.0, value=100.0, step=1.0)
     district_input = st.text_input("📍 District Name (e.g., ryk):", "ryk")
 
-# Prediction logic
+# Predict button
 if st.button("🚀 Predict Crop"):
     # Prepare input data
-    new_data_raw = pd.DataFrame(
-        {
-            "N": [N],
-            "P": [P],
-            "K": [K],
-            "temperature": [temperature],
-            "humidity": [humidity],
-            "ph": [ph],
-            "rainfall": [rainfall],
-        }
-    )
+    new_data = pd.DataFrame({
+        'N': [N],
+        'P': [P],
+        'K': [K],
+        'temperature': [temperature],
+        'humidity': [humidity],
+        'ph': [ph],
+        'rainfall': [rainfall]
+    })
 
-    # Add one-hot encoded district columns
+    # Add district columns (one-hot encoded)
     for col in feature_columns:
         if "district_" in col:
-            new_data_raw[col] = 1 if col == f"district_{district_input}" else 0
+            new_data[col] = 1 if col == f"district_{district_input}" else 0
 
-    # Add missing columns with 0 (if any)
+    # Add missing columns with 0
     for col in feature_columns:
-        if col not in new_data_raw.columns:
-            new_data_raw[col] = 0
+        if col not in new_data.columns:
+            new_data[col] = 0
 
-    # Reorder columns to match training data
-    new_data_raw = new_data_raw[feature_columns]
+    # Reorder columns to match the training data
+    new_data = new_data[feature_columns]
 
     # Make prediction
-    try:
-        prediction = model.predict(new_data_raw)
-        predicted_crop = label_encoder.inverse_transform(prediction)
-        st.success(f"🌾 **Predicted Crop Type:** {predicted_crop[0]} 🌱")
-        st.balloons()
-    except Exception as e:
-        st.error(f"Error making prediction: {e}")
+    prediction = model.predict(new_data)
+    predicted_crop = label_encoder.inverse_transform(prediction)
 
-# Footer
-st.write("**Developed by Us3 with 💚 for Smart Agriculture 🚜.**")
-st.markdown("Stay sustainable, stay productive! 🌍")
+    # Display result
+    st.success(f"🌾 **Predicted Crop Type:** {predicted_crop[0]} 🌱")
+    # st.balloons()
+
+# Footer 
+st.write("**Developed by Us with 💚 for Smart Agriculture 🚜.**")
