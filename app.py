@@ -18,6 +18,44 @@ st.title("🌾 AgriSmart Crop Advisor 🌱")
 st.write(
     "Welcome to **AgriSmart Crop Advisor**! This app helps farmers and agricultural consultants predict the best crop to grow based on soil, weather, and location data. 🚜💡"
 )
+st.subheader("Upload Your Crop Data CSV File")
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+
+@st.cache_data
+def load_and_preprocess_data(file):
+    if file is not None:
+        data = pd.read_csv(file)
+        
+        # Handle missing values
+        data = data.dropna()
+        
+        # Encode label column
+        label_encoder = LabelEncoder()
+        data["label"] = label_encoder.fit_transform(data["label"])
+        
+        # One-hot encode the 'district' column
+        data = pd.get_dummies(data, columns=["district"], drop_first=True)
+        
+        # Features and Target
+        X = data.drop("label", axis=1)
+        y = data["label"]
+        
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # Train the model
+        model = RandomForestClassifier(n_estimators=100, random_state=42)
+        model.fit(X_train, y_train)
+        
+        return model, label_encoder, X.columns, data
+    else:
+        st.warning("Please upload a CSV file first.")
+        return None, None, None, None
+
+if uploaded_file is not None:
+    model, label_encoder, feature_columns, data = load_and_preprocess_data(uploaded_file)
+else:
+    st.stop()  # Prevent further execution until a file is uploaded
 
 # Load Data and Train Model 
 @st.cache_data
